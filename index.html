@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Love gongtingting </title>
+    <title>与你共度的每一刻 - 天气与时间</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     
@@ -32,6 +32,9 @@
                     fontFamily: {
                         romantic: ['Dancing Script', 'cursive', 'sans-serif'],
                         main: ['Segoe UI', 'Roboto', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 }
             }
@@ -67,6 +70,9 @@
             .counter-animation {
                 animation: countUp 2s ease-out forwards;
             }
+            .record-spin {
+                animation: spin 20s linear infinite;
+            }
         }
         
         @keyframes float {
@@ -98,6 +104,11 @@
         @keyframes countUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
     
@@ -192,7 +203,7 @@
                         
                         <div class="mb-2">
                             <span class="text-gray-600">从</span>
-                            <span id="relationship-start" class="font-semibold text-gray-800 ml-1">2022-11-03</span>
+                            <span id="relationship-start" class="font-semibold text-gray-800 ml-1">2023-01-01</span>
                             <span class="text-gray-600">开始</span>
                         </div>
                         
@@ -239,8 +250,9 @@
                 </div>
             </div>
             
-            <!-- 天气卡片 -->
+            <!-- 右侧卡片：天气、音乐、小贴士 -->
             <div class="space-y-6">
+                <!-- 天气卡片 -->
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl card-hover">
                     <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
                         <i class="fa fa-cloud text-romantic-blue mr-2"></i>
@@ -297,6 +309,44 @@
                                 根据天气，今天适合和心爱的人一起...
                             </p>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- 音乐播放器卡片 -->
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl card-hover">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+                        <i class="fa fa-music text-love mr-2"></i>
+                        我们的主题曲
+                    </h2>
+                    
+                    <div class="flex flex-col items-center">
+                        <!-- 唱片样式的音乐封面 -->
+                        <div class="relative w-32 h-32 mb-4">
+                            <div class="absolute inset-0 rounded-full bg-love/20 overflow-hidden">
+                                <img src="https://pic1.imgdb.cn/item/68d4dba6c5157e1a882f7e18.gif" alt="IMG_0667.GIF" alt="音乐封面" class="w-full h-full object-cover rounded-full">
+                            </div>
+                            <div class="absolute inset-0 rounded-full border-4 border-white/30%"></div>
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md"></div>
+                            <div id="record-spinner" class="absolute inset-0 rounded-full border-2 border-dashed border-white/30 opacity-70"></div>
+                        </div>
+                        
+                        <!-- 音乐信息 -->
+                        <div class="text-center mb-4">
+                            <h3 class="font-medium text-gray-800 text-lg">爱的旋律</h3>
+                            <p class="text-sm text-gray-500" id="music-status">点击播放</p>
+                        </div>
+                        
+                        <!-- 播放/暂停按钮 -->
+                        <button id="music-toggle" class="w-14 h-14 rounded-full bg-love text-white flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-110 hover:bg-love-dark focus:outline-none focus:ring-4 focus:ring-love/50">
+                            <i class="fa fa-play text-xl" id="music-icon"></i>
+                        </button>
+                        
+                        <!-- 隐藏的音频元素 -->
+                        <audio id="background-music" loop>
+                            <!-- 网络音乐URL，可替换为你喜欢的音乐 -->
+                            <source src="https://zmwn.f2z.cn/RssjvW" type="audio/mpeg">
+                            您的浏览器不支持音频播放
+                        </audio>
                     </div>
                 </div>
                 
@@ -389,6 +439,50 @@
             'mist': '适合在室内做一些轻松的活动，比如拼图或看纪录片',
             'default': '享受彼此陪伴的美好时光'
         };
+        
+        // 音乐控制功能
+        function setupMusicPlayer() {
+            const musicToggle = document.getElementById('music-toggle');
+            const musicIcon = document.getElementById('music-icon');
+            const backgroundMusic = document.getElementById('background-music');
+            const musicStatus = document.getElementById('music-status');
+            const recordSpinner = document.getElementById('record-spinner');
+            
+            // 切换播放/暂停状态
+            musicToggle.addEventListener('click', () => {
+                if (backgroundMusic.paused) {
+                    // 尝试播放音乐，处理浏览器自动播放限制
+                    backgroundMusic.play().catch(error => {
+                        console.log('音乐播放需要用户交互:', error);
+                        alert('请点击播放按钮开始播放音乐');
+                    });
+                    // 更新UI状态
+                    musicIcon.classList.remove('fa-play');
+                    musicIcon.classList.add('fa-pause');
+                    musicStatus.textContent = '正在播放';
+                    musicToggle.classList.add('animate-pulse-slow');
+                    recordSpinner.classList.add('record-spin');
+                } else {
+                    // 暂停音乐
+                    backgroundMusic.pause();
+                    // 更新UI状态
+                    musicIcon.classList.remove('fa-pause');
+                    musicIcon.classList.add('fa-play');
+                    musicStatus.textContent = '已暂停';
+                    musicToggle.classList.remove('animate-pulse-slow');
+                    recordSpinner.classList.remove('record-spin');
+                }
+            });
+            
+            // 音乐播放结束时重置状态
+            backgroundMusic.addEventListener('ended', () => {
+                musicIcon.classList.remove('fa-pause');
+                musicIcon.classList.add('fa-play');
+                musicStatus.textContent = '点击播放';
+                musicToggle.classList.remove('animate-pulse-slow');
+                recordSpinner.classList.remove('record-spin');
+            });
+        }
         
         // 计算恋爱天数
         function calculateRelationshipDays() {
@@ -515,7 +609,7 @@
                 greeting = '晚上好，龚婷婷宝贝';
                 emoji = '🌙';
             } else {
-                greeting = '夜深了，早点休息哦 龚婷婷';
+                greeting = '夜深了，早点休息哦~';
                 emoji = '🌌';
             }
             
@@ -526,19 +620,30 @@
         // 获取IP定位
         async function getLocation() {
             try {
-                const response = await fetch('https://ipinfo.io/json');
+                const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
+                console.log('定位数据：', data);
                 
                 if (data.city && data.region) {
                     document.getElementById('location').textContent = `${data.city}，${data.region}`;
-                    // 获取天气
-                    getWeather(data.latitude, data.longitude);
+                    // 检查经纬度是否存在
+                    if (data.latitude && data.longitude) {
+                        getWeather(data.latitude, data.longitude);
+                    } else {
+                        console.error('定位接口未返回经纬度');
+                        // 使用默认经纬度（北京）
+                        getWeather(39.9042, 116.4074);
+                    }
                 } else {
                     document.getElementById('location').textContent = '无法获取位置';
+                    // 使用默认经纬度（北京）
+                    getWeather(39.9042, 116.4074);
                 }
             } catch (error) {
                 console.error('获取位置失败:', error);
                 document.getElementById('location').textContent = '位置获取失败';
+                // 使用默认经纬度（北京）
+                getWeather(39.9042, 116.4074);
             }
         }
         
@@ -546,7 +651,7 @@
         async function getWeather(lat, lon) {
             try {
                 // 使用OpenWeatherMap API
-                const apiKey = 'b1b15e88fa797225412429c1c50c19e'; // 公开测试API key
+                const apiKey = '6afd138d8687990548445fd092f3604b'; // 替换为你的API密钥
                 const response = await fetch(
                     `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=zh_cn`
                 );
@@ -645,8 +750,11 @@
             // 计算恋爱天数
             calculateRelationshipDays();
             
-            // 获取位置
+            // 获取位置和天气
             getLocation();
+            
+            // 初始化音乐播放器
+            setupMusicPlayer();
             
             // 创建漂浮爱心
             createFloatingHearts();
@@ -672,6 +780,3 @@
     </script>
 </body>
 </html>
-
-
-
